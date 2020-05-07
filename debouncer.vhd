@@ -1,13 +1,60 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity debouncer is
---  Port ( );
-end debouncer;
 
-architecture Behavioral of debouncer is
+    port(
+        clk 		: in  std_logic;
+        n_rst 		: in  std_logic;
+        button_in 	: in  std_logic;
+        button_out 	: out std_logic
+    );
+	
+end entity;
+
+architecture behaviour of debouncer is
+
+  signal count_in, count_q : integer range 0 to 2000000;  -- range to count for debouncing
 
 begin
+  
+    reg: process (clk) is
+    begin  -- process reg
+        
+        if rising_edge(clk) then         -- rising clock edge
+            if n_rst = '1' then
+                count_q <= count_in;
+			else 
+                count_q <= 0;
+            end if;
+        end if;
+    end process reg;
 
+    comb: process (button_in, count_q) is
+    begin
 
-end Behavioral;
+        count_in 	<= count_q;
+        button_out 	<= '0';
+
+        if button_in = '1' then
+
+            if count_q < 2000000 then
+                count_in <= count_q + 1;
+            else
+                count_in <= 2000000;
+            end if;
+
+        else
+
+            count_in <= 0;
+		  
+        end if;
+
+        if count_q = 2000000 then
+            button_out <= '1';
+        end if;
+		
+    end process comb;
+end architecture;
